@@ -1,0 +1,101 @@
+import sys
+import pygame
+import random
+
+pygame.init()
+
+#Node class
+class Node() :
+
+    def __init__(self,xScale, yScale, width, height, color) :
+        self.xScale = xScale
+        self.yScale = yScale
+        self.width = width
+        self.height = height
+        self.color = color
+        self.isStartNode = False
+        self.isEndingNode = False
+
+    def rect(self):
+        node = pygame.Rect(self.xScale, self.yScale, self.width, self.height)
+        return node
+
+def main():
+
+    #Constants
+    SIZE = WIDTH, HEIGHT = 1080, 1080
+    screen = pygame.display.set_mode(SIZE)
+    GRID_SIZE = X_LEN, Y_LEN = 16, 16
+    SQUARE_SIZE = X_SCALE,Y_SCALE = WIDTH / X_LEN, HEIGHT / Y_LEN
+    MARGIN = 3
+
+    #Colors
+    DEFAULT_NODE_COLOR = (80, 80, 80)
+    STARTING_NODE_COLOR = (64, 128, 237)
+    ENDING_NODE_COLOR = (222, 53, 216)
+
+    #Generate the grid
+    gridList = []
+    for i in range(X_LEN) :
+        row = []
+        for j in range(Y_LEN) :
+            node = Node(i * (X_SCALE + MARGIN), j * (Y_SCALE + MARGIN), X_SCALE, Y_SCALE, DEFAULT_NODE_COLOR)
+            row.append(node)
+        gridList.append(row)
+
+    #Generate the starting node
+    startingNodeCoordinates = (random.randint(0, X_LEN), random.randint(0, Y_LEN))
+    gridList[startingNodeCoordinates[0]][startingNodeCoordinates[1]].color = STARTING_NODE_COLOR
+    gridList[startingNodeCoordinates[0]][startingNodeCoordinates[1]].isStartNode = True
+
+    #Generate the ending node
+    endingNodeCoordinates = (random.randint(0, X_LEN), random.randint(0, Y_LEN))
+    gridList[endingNodeCoordinates[0]][endingNodeCoordinates[1]].color = ENDING_NODE_COLOR
+    gridList[endingNodeCoordinates[0]][endingNodeCoordinates[1]].isEndingNode = True
+
+    #Function to find the length between p1 and p2. Diagonal counts as 14 and strait as 10
+    def calculate_length(p1,p2) :
+        xVal = abs(p1[0] - p2[0])
+        yVal = abs(p1[1] - p2[1])
+
+        diagonalVal = min(xVal, yVal) * 14
+        staightVal = (max(xVal, yVal) - min(xVal, yVal)) * 10
+
+        finalVal = diagonalVal + staightVal
+        return finalVal
+
+    #Function to find the f, g and h cost of a certain tile
+    def find_f_cost(x,y) :
+        #Find G cost
+        for i in range(len(gridList)) :
+            for j in range(len(gridList[i])) :
+                if gridList[i][j].isStartNode == True :
+                    gCost = calculate_length((x,y),(i,j))
+        # Find H cost
+        for i in range(len(gridList)):
+            for j in range(len(gridList[i])):
+                if gridList[i][j].isEndingNode == True:
+                    hCost = calculate_length((x, y), (i, j))
+
+        fCost = gCost + hCost
+        return (gCost, hCost, fCost)
+
+    #Update
+    while True :
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+
+        screen.fill((51,51,51))
+
+        #Draw the nodes
+        for i in range(len(gridList)) :
+            for j in range(len(gridList[i])) :
+                pygame.draw.rect(screen, gridList[i][j].color, gridList[i][j].rect())
+
+        #Update screen
+        pygame.display.flip()
+
+
+if __name__ == '__main__':
+    main()
